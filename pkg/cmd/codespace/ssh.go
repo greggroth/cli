@@ -226,7 +226,7 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 			result := sshResult{}
 			defer wg.Done()
 
-			session, err := codespaces.ConnectToLiveshare(ctx, a, noopLogger(), a.apiClient, cs)
+			session, err := cs.ConnectToLiveshare(ctx, a, noopLogger(), a.apiClient)
 			if err != nil {
 				result.err = fmt.Errorf("error connecting to codespace: %w", err)
 			} else {

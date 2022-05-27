@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -90,6 +91,7 @@ func newCreateCmd(app *App) *cobra.Command {
 				}
 				var sshArgs []string
 				if err := app.SSH(cmd.Context(), sshArgs, sshOpts); err != nil {
+					fmt.Println(string(debug.Stack()))
 					return fmt.Errorf("ssh error: %w", err)
 				}
 			}

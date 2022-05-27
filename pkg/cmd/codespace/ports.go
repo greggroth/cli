@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cli/cli/v2/internal/codespaces"
 	"github.com/cli/cli/v2/internal/codespaces/api"
 	"github.com/cli/cli/v2/pkg/cmdutil"
 	"github.com/cli/cli/v2/pkg/liveshare"
@@ -272,7 +271,7 @@ func (a *App) UpdatePortVisibility(ctx context.Context, codespaceName string, ar
 		return err
 	}
 
-	session, err := codespaces.ConnectToLiveshare(ctx, a, noopLogger(), a.apiClient, codespace)
+	session, err := codespace.ConnectToLiveshare(ctx, a, noopLogger(), a.apiClient)
 	if err != nil {
 		return fmt.Errorf("error connecting to codespace: %w", err)
 	}
@@ -377,7 +376,7 @@ func (a *App) ForwardPorts(ctx context.Context, codespaceName string, ports []st
 		return err
 	}
 
-	session, err := codespaces.ConnectToLiveshare(ctx, a, noopLogger(), a.apiClient, codespace)
+	session, err := codespace.ConnectToLiveshare(ctx, a, noopLogger(), a.apiClient)
 	if err != nil {
 		return fmt.Errorf("error connecting to codespace: %w", err)
 	}

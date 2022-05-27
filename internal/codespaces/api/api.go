@@ -42,6 +42,7 @@ import (
 	"time"
 
 	"github.com/cli/cli/v2/api"
+	"github.com/cli/cli/v2/pkg/liveshare"
 	"github.com/opentracing/opentracing-go"
 )
 
@@ -265,6 +266,69 @@ func (c *Codespace) ExportData(fields []string) map[string]interface{} {
 	}
 
 	return data
+}
+
+type apiClient interface {
+	GetCodespace(ctx context.Context, name string, includeConnection bool) (*Codespace, error)
+	StartCodespace(ctx context.Context, name string) error
+}
+
+type progressIndicator interface {
+	StartProgressIndicatorWithLabel(s string)
+	StopProgressIndicator()
+}
+
+type logger interface {
+	Println(v ...interface{})
+	Printf(f string, v ...interface{})
+}
+
+// ConnectToLiveshare waits for a Codespace to become running,
+// and connects to it using a Live Share session.
+func (c *Codespace) ConnectToLiveshare(ctx context.Context, progress progressIndicator, sessionLogger logger, apiClient apiClient) (sess *liveshare.Session, err error) {
+	if c.State != CodespaceStateAvailable {
+		progress.StartProgressIndicatorWithLabel("Starting codespace")
+		if err := apiClient.StartCodespace(ctx, c.Name); err != nil {
+			return nil, fmt.Errorf("error starting codespace: %w", err)
+		}
+	}
+
+	for retries := 0; !connectionReady(c); retries++ {
+		if retries > 1 {
+			time.Sleep(1 * time.Second)
+		}
+
+		if retries == 30 {
+			return nil, errors.New("timed out while waiting for the codespace to start")
+		}
+
+		c, err = apiClient.GetCodespace(ctx, c.Name, true)
+		if err != nil {
+			return nil, fmt.Errorf("error getting codespace: %w", err)
+		}
+	}
+
+	progress.StartProgressIndicatorWithLabel("Connecting to codespace")
+	defer progress.StopProgressIndicator()
+
+	fmt.Println("liveshare.Connect")
+	return liveshare.Connect(ctx, liveshare.Options{
+		ClientName:     "gh",
+		SessionID:      c.Connection.SessionID,
+		SessionToken:   c.Connection.SessionToken,
+		RelaySAS:       c.Connection.RelaySAS,
+		RelayEndpoint:  c.Connection.RelayEndpoint,
+		HostPublicKeys: c.Connection.HostPublicKeys,
+		Logger:         sessionLogger,
+	})
+}
+
+func connectionReady(codespace *Codespace) bool {
+	return codespace.Connection.SessionID != "" &&
+		codespace.Connection.SessionToken != "" &&
+		codespace.Connection.RelayEndpoint != "" &&
+		codespace.Connection.RelaySAS != "" &&
+		codespace.State == CodespaceStateAvailable
 }
 
 // ListCodespaces returns a list of codespaces for the user. Pass a negative limit to request all pages from

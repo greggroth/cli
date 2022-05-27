@@ -9,6 +9,7 @@ import (
 	"github.com/cli/cli/v2/internal/codespaces/api"
 	"github.com/cli/cli/v2/pkg/cmdutil"
 	"github.com/cli/cli/v2/pkg/iostreams"
+	"github.com/cli/cli/v2/pkg/liveshare"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -431,6 +432,10 @@ func TestCreateAndSsh(t *testing.T) {
 					SessionToken:  "something",
 					RelayEndpoint: "something",
 					RelaySAS:      "something",
+				},
+				ConnectToLiveshare: func(ctx context.Context, progress progressIndicator, sessionLogger logger, apiClient apiClient) (sess *liveshare.Session, err error) {
+					fmt.Println("In mock")
+					return &liveshare.Session{}, nil
 				},
 			}, nil
 		},

@@ -41,7 +41,7 @@ type PostCreateState struct {
 func PollPostCreateStates(ctx context.Context, progress progressIndicator, apiClient apiClient, codespace *api.Codespace, poller func([]PostCreateState)) (err error) {
 	noopLogger := log.New(io.Discard, "", 0)
 
-	session, err := ConnectToLiveshare(ctx, progress, noopLogger, apiClient, codespace)
+	session, err := codespace.ConnectToLiveshare(ctx, progress, noopLogger, apiClient)
 	if err != nil {
 		return fmt.Errorf("connect to codespace: %w", err)
 	}

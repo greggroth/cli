@@ -14,7 +14,6 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
-	"github.com/cli/cli/v2/internal/codespaces"
 	"github.com/cli/cli/v2/internal/codespaces/api"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/cli/cli/v2/pkg/liveshare"
@@ -81,7 +80,7 @@ func startLiveShareSession(ctx context.Context, codespace *api.Codespace, a *App
 		a.errLogger.Printf("Debug file located at: %s", debugLogger.Name())
 	}
 
-	session, err = codespaces.ConnectToLiveshare(ctx, a, liveshareLogger, a.apiClient, codespace)
+	session, err = codespace.ConnectToLiveshare(ctx, a, liveshareLogger, a.apiClient)
 	if err != nil {
 		if authErr := <-authkeys; authErr != nil {
 			return nil, fmt.Errorf("failed to fetch authorization keys: %w", authErr)
